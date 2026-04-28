@@ -1,60 +1,573 @@
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  const { code, stdin } = req.body || {};
-  if (!code) return res.status(400).json({ error: 'code required' });
-
-  // stdin ni kod ichiga inject qilamiz — fmemopen orqali
-  // Bu codapi/wandbox/har qanday API da stdin support bo'lmasa ham ishlaydi
-  const safeStdin = (stdin || '')
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '');
-
-  const injection = `#include <stdio.h>
-#include <string.h>
-static char _fake_buf[] = "${safeStdin}\\n";
-static __attribute__((constructor)) void _stdin_setup(void){
-  stdin = fmemopen(_fake_buf, strlen(_fake_buf), "r");
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<title>C Imtihon Platformasi</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080b12;--bg2:#0c1018;--bg3:#111724;--bg4:#1a2035;
+  --border:#1e2740;--border2:#253050;
+  --text:#c9d1e0;--text2:#7a8299;--text3:#4a5270;
+  --green:#3ddc84;--green-dim:rgba(61,220,132,.12);
+  --blue:#4d9eff;--blue-dim:rgba(77,158,255,.12);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,.12);
+  --orange:#fb923c;--orange-dim:rgba(251,146,60,.12);
+  --red:#f87171;--red-dim:rgba(248,113,113,.12);
+  --yellow:#fbbf24;
 }
-`;
+html,body{height:100%;overflow:hidden}
+body{font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
 
-  const finalCode = injection + '\n' + code;
+/* Scrollbar */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 
+/* Layout */
+#wrap{display:flex;flex:1;overflow:hidden;position:relative}
+
+/* Sidebar */
+#sb{width:220px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+#sb-hdr{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.logo{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.logo-text{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff;letter-spacing:.02em}
+.logo-sub{font-size:9px;color:var(--text3);letter-spacing:.12em;text-transform:uppercase}
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.prog-label{font-size:9px;color:var(--text3);letter-spacing:.08em}
+.prog-num{font-size:9px;color:var(--green);font-weight:700}
+.pbar{height:2px;background:var(--border);border-radius:1px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:1px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+
+.tl{padding:10px 16px 4px;font-size:8.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.tl::after{content:'';flex:1;height:1px;background:var(--border);opacity:.6}
+.pi{padding:7px 16px;cursor:pointer;border-left:2px solid transparent;display:flex;align-items:center;gap:7px;transition:background .15s}
+.pi:hover{background:rgba(255,255,255,.03)}
+.pi.act{background:rgba(255,255,255,.05)}
+.db{font-size:8px;padding:2px 5px;border-radius:3px;font-weight:700;flex-shrink:0;letter-spacing:.03em}
+.pn{font-size:10.5px;flex:1;color:var(--text2);line-height:1.3;transition:color .15s}
+.pi.act .pn,.pi:hover .pn{color:var(--text)}
+.ck{font-size:11px;color:var(--green);flex-shrink:0}
+
+/* Main */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;flex-shrink:0;background:var(--bg2)}
+.ttag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;flex-shrink:0}
+.ptitle{font-size:13px;color:#fff;font-weight:600;font-family:'Syne',sans-serif}
+.dtag{font-size:9px;padding:2px 8px;border-radius:4px;margin-left:auto;flex-shrink:0;font-weight:700}
+
+#ca{flex:1;display:flex;overflow:hidden}
+
+/* Description panel */
+#dp{width:250px;border-right:1px solid var(--border);overflow-y:auto;padding:14px;flex-shrink:0;background:var(--bg2)}
+.desc-label{font-size:8.5px;font-weight:700;letter-spacing:.12em;color:var(--text3);margin-bottom:8px;text-transform:uppercase}
+.dt{font-size:11px;color:var(--text);line-height:1.85;white-space:pre-wrap}
+.tcl{font-size:8.5px;color:var(--text3);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-top:16px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.tcl::after{content:'';flex:1;height:1px;background:var(--border);opacity:.5}
+.tcb{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:9px;margin-bottom:6px;font-size:10px}
+.tk{color:var(--text3);font-size:9px;letter-spacing:.06em;margin-bottom:2px}
+.tv{color:var(--blue);font-family:'JetBrains Mono',monospace;white-space:pre;font-size:10.5px}
+.te{color:var(--green);font-family:'JetBrains Mono',monospace;font-size:10.5px}
+
+/* Editor panel */
+#ep{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#tabbar{display:flex;align-items:center;padding:0 14px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2)}
+.tab{padding:9px 13px;font-size:11px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text2);cursor:pointer;font-family:'JetBrains Mono',monospace;margin-bottom:-1px;transition:color .15s,border-color .15s;letter-spacing:.02em}
+.tab:hover{color:var(--text)}
+.tab.on{border-bottom-color:var(--blue);color:var(--blue)}
+#tbr{margin-left:auto;display:flex;gap:7px;align-items:center}
+.hbtn{padding:5px 12px;font-size:10.5px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:5px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .15s;letter-spacing:.02em}
+.hbtn:hover{border-color:var(--yellow);color:var(--yellow)}
+.rbtn{padding:5px 18px;font-size:11px;font-weight:700;background:linear-gradient(135deg,#16a34a,#15803d);border:none;color:#fff;border-radius:5px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .15s;letter-spacing:.03em;position:relative;overflow:hidden}
+.rbtn:hover{background:linear-gradient(135deg,#22c55e,#16a34a);transform:translateY(-1px);box-shadow:0 4px 12px rgba(34,197,94,.3)}
+.rbtn:active{transform:translateY(0)}
+.rbtn.loading{background:linear-gradient(135deg,#1e3a2a,#162e20)}
+.rbtn:disabled,.hbtn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+
+#tc{flex:1;display:flex;overflow:hidden;position:relative}
+textarea#ce{width:100%;height:100%;background:var(--bg);color:#d4dae8;border:none;outline:none;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.7;padding:16px;resize:none;tab-size:4;caret-color:var(--green)}
+textarea#ce::selection{background:rgba(77,158,255,.2)}
+
+/* Output panel */
+.op-wrap{flex:1;overflow-y:auto;padding:14px}
+.cerr{background:var(--red-dim);border:1px solid rgba(248,113,113,.3);border-radius:6px;padding:12px;margin-bottom:12px}
+.cerrt{font-size:9.5px;color:var(--red);font-weight:700;margin-bottom:7px;letter-spacing:.06em;display:flex;align-items:center;gap:5px}
+.cerrb{font-size:11px;color:#fca5a5;white-space:pre-wrap;line-height:1.7}
+.tr{margin-bottom:8px;padding:11px 13px;border-radius:6px;font-size:11px}
+.trp{background:rgba(61,220,132,.07);border:1px solid rgba(61,220,132,.2)}
+.trf{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.2)}
+.trs{font-weight:700;margin-bottom:6px;font-size:11px}
+.trd{color:var(--text2);margin-top:4px;font-size:10.5px}
+.trd span{margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:11px}
+.em{color:var(--text3);font-size:11.5px;text-align:center;margin-top:40px;line-height:2}
+.ht{font-size:9.5px;color:var(--yellow);font-weight:700;margin-bottom:10px;letter-spacing:.08em;display:flex;align-items:center;gap:5px}
+.hbody{font-size:12px;color:var(--text);line-height:1.9;white-space:pre-wrap;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:14px}
+.hin{margin-top:12px;padding:9px 11px;background:rgba(251,191,36,.07);border-radius:5px;font-size:10px;color:#92764a;border-left:2px solid rgba(251,191,36,.3);line-height:1.6}
+.sumrow{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);font-size:10.5px;color:var(--text2)}
+.sumrow .sc{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#fff}
+.win-banner{background:linear-gradient(135deg,rgba(61,220,132,.15),rgba(77,158,255,.1));border:1px solid rgba(61,220,132,.3);border-radius:8px;padding:14px;text-align:center;margin-bottom:12px}
+.win-emoji{font-size:28px;margin-bottom:4px}
+.win-text{font-size:12px;color:var(--green);font-weight:700;letter-spacing:.05em}
+
+/* Loading spinner */
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-row{display:flex;align-items:center;gap:8px;color:var(--text2);font-size:11px;padding:14px}
+
+/* Progress toast */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#000;font-size:11px;font-weight:700;padding:8px 14px;border-radius:6px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;font-family:'Syne',sans-serif}
+#toast.show{opacity:1}
+
+
+#key-status.ok{background:rgba(61,220,132,.1);border-color:rgba(61,220,132,.3);color:var(--green)}
+#key-status.no{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:var(--red)}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="sb">
+    <div id="sb-hdr">
+      <div class="logo">
+        <div class="logo-icon">⌨</div>
+        <div>
+          <div class="logo-text">C IMTIHON</div>
+          <div class="logo-sub">AI Compiler</div>
+        </div>
+      </div>
+      <div class="prog-row">
+        <span class="prog-label" id="prog-text">0 / 12 yechildi</span>
+        <span class="prog-num" id="prog-pct">0%</span>
+      </div>
+      <div class="pbar"><div class="pfill" id="pbar" style="width:0%"></div></div>
+    </div>
+    <div id="sb-body"></div>
+  </div>
+  <div id="main">
+    <div id="topbar">
+      <span class="ttag" id="topic-tag"></span>
+      <span class="ptitle" id="ptitle"></span>
+      <span class="dtag" id="diff-tag"></span>
+    </div>
+    <div id="ca">
+      <div id="dp">
+        <div class="desc-label">Masala tavsifi</div>
+        <div class="dt" id="desc"></div>
+        <div class="tcl">Test holatlari</div>
+        <div id="tcs"></div>
+      </div>
+      <div id="ep">
+        <div id="tabbar">
+          <button class="tab on" id="tab-e" onclick="setTab('e')">main.c</button>
+          <button class="tab" id="tab-o" onclick="setTab('o')">Natija</button>
+          <button class="tab" id="tab-h" onclick="setTab('h')">Hint</button>
+          <div id="tbr">
+            <button class="hbtn" id="hbtn" onclick="getHint()">💡 Hint</button>
+            <button class="rbtn" id="rbtn" onclick="runCode()">▶ Ishga tushir</button>
+          </div>
+        </div>
+        <div id="tc">
+          <textarea id="ce" spellcheck="false"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const P=[
+{id:1,top:"C2",tn:"Bash Utils",d:"easy",title:"Satrni chiqarish (echo)",
+desc:"Stdin dan bir satr o'qib, uni stdout ga chiqaring.\n\nBash'dagi 'echo' buyrug'iga o'xshash.\n\nMaslahat: fgets() bilan o'qing, oxiridagi \\n ni olib tashlang.",
+hint:"fgets(str,1000,stdin); str[strlen(str)-1]='\\0'; printf(\"%s\",str);",
+code:`#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char str[1000];
+    // stdin dan satr o'qing va chiqaring
+    
+    return 0;
+}`,
+tests:[{i:"Salom dunyo",e:"Salom dunyo"},{i:"C dasturlash",e:"C dasturlash"},{i:"TSUE 2025",e:"TSUE 2025"}]},
+
+{id:2,top:"C2",tn:"Bash Utils",d:"medium",title:"Satr uzunligi (wc -c)",
+desc:"Stdin dan bir satr o'qib, uzunligini chiqaring.\n\nMisol: \"Salom\" → 5\n\"Hello World\" → 11",
+hint:"strlen() ishlatib uzunlikni toping. fgets() \\n ham o'qiydi, uni hisoblamang.",
+code:`#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char str[1000];
+    fgets(str, 1000, stdin);
+    if (str[strlen(str)-1]=='\\n') str[strlen(str)-1]='\\0';
+    // Uzunlikni hisoblang va chiqaring
+    
+    return 0;
+}`,
+tests:[{i:"Salom",e:"5"},{i:"Hello World",e:"11"},{i:"C",e:"1"},{i:"abcd",e:"4"}]},
+
+{id:3,top:"C2",tn:"Bash Utils",d:"hard",title:"So'zlar soni (wc -w)",
+desc:"Stdin dan bir satr o'qib, so'zlar sonini chiqaring.\n\nMisol: \"bu bir test\" → 3",
+hint:"strtok(str,\" \") bilan so'zlarni ajrating va sanang.",
+code:`#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char str[1000];
+    fgets(str, 1000, stdin);
+    // So'zlar sonini hisoblang
+    
+    return 0;
+}`,
+tests:[{i:"bu bir test",e:"3"},{i:"salom dunyo",e:"2"},{i:"bir ikki uch tort besh",e:"5"}]},
+
+{id:4,top:"C3",tn:"String Plus",d:"easy",title:"Stringni teskari aylantirish",
+desc:"Stdin dan so'z o'qib, teskari chiqaring.\n\nMisol: \"salom\" → \"molas\"\n\"hello\" → \"olleh\"",
+hint:"for(int i=n-1;i>=0;i--) printf(\"%c\",str[i]);",
+code:`#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char str[1000];
+    scanf("%s", str);
+    int n = strlen(str);
+    // Teskari chiqaring
+    
+    return 0;
+}`,
+tests:[{i:"salom",e:"molas"},{i:"hello",e:"olleh"},{i:"C",e:"C"},{i:"abcd",e:"dcba"}]},
+
+{id:5,top:"C3",tn:"String Plus",d:"medium",title:"Palindrom tekshirish",
+desc:"So'z palindrom bo'lsa \"YES\", bo'lmasa \"NO\" chiqaring.\n\nMisol: \"aba\" → YES\n\"abc\" → NO",
+hint:"Stringni teskari nusxasi bilan solishtiring yoki i va n-1-i indekslarini taqqoslang.",
+code:`#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char str[1000];
+    scanf("%s", str);
+    int n = strlen(str);
+    // Palindrom tekshiring
+    
+    return 0;
+}`,
+tests:[{i:"aba",e:"YES"},{i:"abc",e:"NO"},{i:"racecar",e:"YES"},{i:"hello",e:"NO"}]},
+
+{id:6,top:"C3",tn:"String Plus",d:"hard",title:"Bosh harflar soni",
+desc:"Satrda nechta bosh harf (A-Z) borligini chiqaring.\n\nMisol: \"Hello World\" → 2",
+hint:"isupper(c) funksiyasi yoki 'A'<=c && c<='Z' shartini ishlating.",
+code:`#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+int main() {
+    char str[1000];
+    fgets(str, 1000, stdin);
+    // Bosh harflar sonini sanang
+    
+    return 0;
+}`,
+tests:[{i:"Hello World",e:"2"},{i:"ABC",e:"3"},{i:"abc",e:"0"},{i:"HeLLo",e:"3"}]},
+
+{id:7,top:"C5",tn:"Array Ops",d:"easy",title:"Massiv yig'indisi",
+desc:"N ta son o'qib, ularning yig'indisini chiqaring.\n\nMisol:\n3\n1 2 3\n→ 6",
+hint:"sum += a[i] pattern ishlatib yig'ing.",
+code:`#include <stdio.h>
+
+int main() {
+    int n; scanf("%d",&n);
+    int a[100];
+    for(int i=0;i<n;i++) scanf("%d",&a[i]);
+    // Yig'indini hisoblang va chiqaring
+    
+    return 0;
+}`,
+tests:[{i:"3\n1 2 3",e:"6"},{i:"5\n10 20 30 40 50",e:"150"},{i:"1\n42",e:"42"}]},
+
+{id:8,top:"C5",tn:"Array Ops",d:"medium",title:"Massivni teskari chiqarish",
+desc:"N ta son o'qib, teskari tartibda chiqaring. Elementlar orasida bo'sh joy bo'lsin.\n\nMisol:\n4\n1 2 3 4\n→ 4 3 2 1",
+hint:"for(int i=n-1;i>=0;i--) formatni ehtiyot bo'lish kerak.",
+code:`#include <stdio.h>
+
+int main() {
+    int n; scanf("%d",&n);
+    int a[100];
+    for(int i=0;i<n;i++) scanf("%d",&a[i]);
+    // Teskari chiqaring
+    
+    return 0;
+}`,
+tests:[{i:"4\n1 2 3 4",e:"4 3 2 1"},{i:"3\n5 10 15",e:"15 10 5"},{i:"1\n7",e:"7"}]},
+
+{id:9,top:"C5",tn:"Array Ops",d:"hard",title:"Eng katta va kichik son",
+desc:"N ta son o'qib, eng katta va eng kichik sonni chiqaring (har biri alohida qatorda).\n\nMisol:\n5\n3 1 4 1 5\n→\n5\n1",
+hint:"max=a[0]; min=a[0]; dan boshlang, keyin for loop bilan yangilang.",
+code:`#include <stdio.h>
+
+int main() {
+    int n; scanf("%d",&n);
+    int a[100];
+    for(int i=0;i<n;i++) scanf("%d",&a[i]);
+    // max va min toping
+    
+    return 0;
+}`,
+tests:[{i:"5\n3 1 4 1 5",e:"5\n1"},{i:"3\n10 20 5",e:"20\n5"},{i:"1\n42",e:"42\n42"}]},
+
+{id:10,top:"C6",tn:"Matrix",d:"easy",title:"Matritsa transponenti",
+desc:"N x N matritsa o'qib, transponentini chiqaring.\n\nMisol:\n2\n1 2\n3 4\n→\n1 3\n2 4",
+hint:"t[i][j] = a[j][i] formulasidan foydalaning.",
+code:`#include <stdio.h>
+
+int main() {
+    int n; scanf("%d",&n);
+    int a[10][10];
+    for(int i=0;i<n;i++) for(int j=0;j<n;j++) scanf("%d",&a[i][j]);
+    // Transponentni chiqaring
+    
+    return 0;
+}`,
+tests:[{i:"2\n1 2\n3 4",e:"1 3\n2 4"},{i:"3\n1 2 3\n4 5 6\n7 8 9",e:"1 4 7\n2 5 8\n3 6 9"}]},
+
+{id:11,top:"C6",tn:"Matrix",d:"medium",title:"Diagonal yig'indisi",
+desc:"N x N matritsa o'qib, asosiy diagonal yig'indisini chiqaring.\n\nMisol:\n3\n1 2 3\n4 5 6\n7 8 9\n→ 15",
+hint:"Asosiy diagonal: a[i][i] elementlari (i=0..n-1).",
+code:`#include <stdio.h>
+
+int main() {
+    int n; scanf("%d",&n);
+    int a[10][10];
+    for(int i=0;i<n;i++) for(int j=0;j<n;j++) scanf("%d",&a[i][j]);
+    // Diagonal yig'indisini hisoblang
+    
+    return 0;
+}`,
+tests:[{i:"3\n1 2 3\n4 5 6\n7 8 9",e:"15"},{i:"2\n1 2\n3 4",e:"5"},{i:"1\n7",e:"7"}]},
+
+{id:12,top:"C6",tn:"Matrix",d:"hard",title:"Matritsa ko'paytmasi",
+desc:"N x N ikkita matritsani o'qib, ko'paytmasini chiqaring.\n\nMisol:\n2\n1 2\n3 4\n1 0\n0 1\n→\n1 2\n3 4",
+hint:"c[i][j] = sum(a[i][k]*b[k][j]) uchta ichma-ich for loop kerak.",
+code:`#include <stdio.h>
+
+int main() {
+    int n; scanf("%d",&n);
+    int a[10][10],b[10][10],c[10][10]={};
+    for(int i=0;i<n;i++) for(int j=0;j<n;j++) scanf("%d",&a[i][j]);
+    for(int i=0;i<n;i++) for(int j=0;j<n;j++) scanf("%d",&b[i][j]);
+    // c hisoblang (3 ta for loop)
+    // Natijani chiqaring
+    
+    return 0;
+}`,
+tests:[{i:"2\n1 2\n3 4\n1 0\n0 1",e:"1 2\n3 4"},{i:"2\n1 2\n3 4\n2 0\n1 2",e:"4 4\n10 8"}]},
+];
+
+const TC={C2:{a:"#4d9eff",bg:"rgba(77,158,255,.15)"},C3:{a:"#3ddc84",bg:"rgba(61,220,132,.15)"},C5:{a:"#a78bfa",bg:"rgba(167,139,250,.15)"},C6:{a:"#fb923c",bg:"rgba(251,146,60,.15)"}};
+const DC={easy:{l:"Oson",c:"#3ddc84",bg:"rgba(61,220,132,.15)"},medium:{l:"O'rta",c:"#fbbf24",bg:"rgba(251,191,36,.15)"},hard:{l:"Qiyin",c:"#f87171",bg:"rgba(248,113,113,.15)"}};
+
+let cur=P[0],tab='e',results=[],cerr='',hint='',solved=new Set();
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function buildSidebar(){
+  const body=document.getElementById('sb-body');
+  const tops=[...new Set(P.map(x=>x.top))];
+  let h='';
+  tops.forEach(t=>{
+    const c=TC[t],ps=P.filter(x=>x.top===t);
+    h+=`<div class="tl" style="color:${c.a}">${t} · ${ps[0].tn}</div>`;
+    ps.forEach(p=>{
+      const d=DC[p.d],ac=cur.id===p.id;
+      h+=`<div class="pi${ac?' act':''}" style="${ac?`border-left-color:${TC[p.top].a}`:''}" onclick="selP(${p.id})">
+        <span class="db" style="background:${d.bg};color:${d.c}">${d.l[0]}</span>
+        <span class="pn">${esc(p.title)}</span>
+        ${solved.has(p.id)?'<span class="ck">✓</span>':''}
+      </div>`;
+    });
+  });
+  body.innerHTML=h;
+  const pct=Math.round(solved.size/P.length*100);
+  document.getElementById('prog-text').textContent=`${solved.size} / ${P.length} yechildi`;
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('pbar').style.width=pct+'%';
+}
+
+function updateHeader(){
+  const p=cur,tc2=TC[p.top],d=DC[p.d];
+  const tt=document.getElementById('topic-tag');
+  tt.textContent=p.top;
+  tt.style.cssText=`background:${tc2.bg};color:${tc2.a};font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700`;
+  document.getElementById('ptitle').textContent=p.title;
+  const dt=document.getElementById('diff-tag');
+  dt.textContent=d.l;
+  dt.style.cssText=`background:${d.bg};color:${d.c};font-size:9px;padding:2px 8px;border-radius:4px;margin-left:auto;font-weight:700`;
+  document.getElementById('desc').textContent=p.desc;
+  document.getElementById('tcs').innerHTML=p.tests.map(t=>`<div class="tcb">
+    <div class="tk">Kirish:</div><div class="tv">${esc(t.i)}</div>
+    <div class="tk" style="margin-top:4px">Kutilgan:</div><div class="te">${esc(t.e)}</div>
+  </div>`).join('');
+}
+
+function selP(id){
+  cur=P.find(x=>x.id===id);
+  results=[];cerr='';hint='';tab='e';
+  buildSidebar();updateHeader();showTab('e');
+}
+
+function setTab(t){tab=t;showTab(t);}
+
+function showTab(t){
+  ['e','o','h'].forEach(x=>{
+    document.getElementById('tab-'+x).className='tab'+(x===t?' on':'');
+  });
+  const tc3=document.getElementById('tc');
+  if(t==='e'){
+    tc3.innerHTML='<textarea id="ce" spellcheck="false"></textarea>';
+    const ce=document.getElementById('ce');
+    ce.value=cur.code;
+    ce.addEventListener('input',()=>{cur.code=ce.value;});
+    ce.addEventListener('keydown',e=>{
+      if(e.key==='Tab'){e.preventDefault();const s=e.target.selectionStart;e.target.value=e.target.value.substring(0,s)+'    '+e.target.value.substring(e.target.selectionEnd);e.target.selectionStart=e.target.selectionEnd=s+4;cur.code=e.target.value;}
+      if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();runCode();}
+    });
+  } else if(t==='o'){
+    let h='';
+    if(cerr) h+=`<div class="cerr"><div class="cerrt">⛔ KOMPILYATSIYA XATOSI</div><div class="cerrb">${esc(cerr)}</div></div>`;
+    if(results.length){
+      const ok=results.filter(r=>r.ok).length;
+      const allOk=ok===results.length;
+      if(allOk) h+=`<div class="win-banner"><div class="win-emoji">🎉</div><div class="win-text">BARCHA TESTLAR O'TDI!</div></div>`;
+      h+=`<div class="sumrow"><span class="sc">${ok}/${results.length}</span> test o'tdi ${allOk?'✅':''}</div>`;
+      results.forEach(r=>{
+        h+=`<div class="tr ${r.ok?'trp':'trf'}">
+          <div class="trs" style="color:${r.ok?'#3ddc84':'#f87171'}">${r.ok?'✓ O\'tdi':'✗ Xato'} — Test ${r.id}</div>
+          ${!r.ok?`<div class="trd">Kirish: <span style="color:#4d9eff">${esc(r.inp)}</span></div>
+            <div class="trd">Kutilgan: <span style="color:#3ddc84">${esc(r.exp)}</span></div>
+            <div class="trd">Sizniki: <span style="color:#f87171">${esc(r.got||"(bo'sh)")}</span></div>
+            ${r.err?`<div style="color:#fca5a5;font-size:10px;margin-top:5px;white-space:pre-wrap;background:rgba(248,113,113,.07);padding:7px;border-radius:4px">${esc(r.err.substring(0,500))}</div>`:''}`:''}</div>`;
+      });
+    }
+    if(!cerr&&!results.length) h='<div class="em">Kodni yozib<br>▶ Ishga tushir tugmasini bosing<br><span style="font-size:9px;color:#2a3050">Ctrl+Enter ham ishlaydi</span></div>';
+    tc3.innerHTML=`<div class="op-wrap">${h}</div>`;
+  } else {
+    let h='';
+    if(hint) h=`<div class="ht">💡 MASLAHAT</div><div class="hbody">${esc(hint)}</div>`;
+    else h=`<div class="em">💡 Hint tugmasini bosing</div>`;
+    tc3.innerHTML=`<div class="op-wrap">${h}</div>`;
+  }
+}
+
+// Kompilyator: /api/run (Vercel) yoki to'g'ridan Piston (lokal)
+async function runCode_api(code, stdin){
+  // Har doim /api/run orqali urinib ko'ramiz (Vercel deploy uchun)
+  const isFile = window.location.protocol === 'file:';
+
+  if (!isFile) {
+    // Vercel / server da — /api/run orqali (CORS yo'q)
+    try {
+      const resp = await fetch('/api/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, stdin: stdin || '' })
+      });
+      if (resp.ok) return await resp.json();
+      // /api/run xato bersa, xato xabarini ko'rsat
+      const err = await resp.json().catch(() => ({}));
+      return { error: '/api/run xatosi ' + resp.status + ': ' + (err.error || '') };
+    } catch(e) {
+      return { error: '/api/run ulanmadi: ' + e.message };
+    }
+  }
+
+  // Lokal fayl (file://) — codapi.org
   try {
-    const response = await fetch('https://api.codapi.org/v1/exec', {
+    const resp = await fetch('https://api.codapi.org/v1/exec', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sandbox: 'gcc',
         command: 'run',
-        files: { 'main.c': finalCode },
-      }),
+        files: { 'main.c': code },
+        stdin: stdin || ''
+      })
     });
-
-    if (!response.ok) {
-      const txt = await response.text().catch(() => '');
-      return res.status(502).json({ error: `codapi ${response.status}: ${txt.substring(0,300)}` });
+    const d = await resp.json();
+    if (!d.ok) {
+      const err = (d.stderr || d.stdout || '').trimEnd();
+      return { compile_error: err };
     }
-
-    const data = await response.json();
-
-    if (!data.ok) {
-      const errMsg = (data.stderr || data.stdout || 'Noma\'lum xato').trimEnd();
-      return res.status(200).json({ compile_error: errMsg });
-    }
-
-    return res.status(200).json({
-      stdout: (data.stdout || '').trimEnd(),
-      stderr: (data.stderr || '').substring(0, 300),
-    });
-
-  } catch (e) {
-    return res.status(500).json({ error: 'Server xatosi: ' + e.message });
+    return {
+      stdout: (d.stdout || '').trimEnd(),
+      stderr: (d.stderr || '').substring(0, 300)
+    };
+  } catch(e) {
+    return { error: 'codapi xatosi: ' + e.message };
   }
 }
+
+async function runCode(){
+  const rb = document.getElementById('rbtn');
+  rb.disabled = true;
+  rb.className = 'rbtn loading';
+  rb.innerHTML = '<span class="spin"></span>';
+  results = []; cerr = ''; tab = 'o';
+
+  // Loading ko'rsatish
+  document.getElementById('tc').innerHTML = `<div class="op-wrap"><div class="loader-row"><span class="spin"></span> Claude kodni tekshirmoqda...</div></div>`;
+
+  try {
+    for(let i = 0; i < cur.tests.length; i++){
+      const t = cur.tests[i];
+
+      document.getElementById('tc').innerHTML = `<div class="op-wrap"><div class="loader-row"><span class="spin"></span> Test ${i+1}/${cur.tests.length} bajarilmoqda...</div></div>`;
+
+      const data = await runCode_api(cur.code, t.i);
+
+      if(data.error){ cerr = data.error; break; }
+      if(data.compile_error){ cerr = data.compile_error; break; }
+
+      const got = (data.stdout || '').trimEnd();
+      results.push({id:i+1, inp:t.i, exp:t.e, got, ok: got===t.e, err: data.stderr||''});
+    }
+
+    if(!cerr && results.length && results.every(r=>r.ok)){
+      solved.add(cur.id);
+      buildSidebar();
+      showToast('🎉 Masala yechildi!');
+    }
+  } catch(e) {
+    cerr = 'API xatosi: '+e.message;
+  }
+
+  rb.disabled = false;
+  rb.className = 'rbtn';
+  rb.textContent = '▶ Ishga tushir';
+  showTab('o');
+}
+
+function getHint(){
+  hint = cur.hint;
+  tab = 'h';
+  showTab('h');
+}
+
+buildSidebar(); updateHeader();
+document.getElementById('ce').value = cur.code;
+document.getElementById('ce').addEventListener('input', e => cur.code = e.target.value);
+document.getElementById('ce').addEventListener('keydown', e => {
+  if(e.key==='Tab'){e.preventDefault();const s=e.target.selectionStart;e.target.value=e.target.value.substring(0,s)+'    '+e.target.value.substring(e.target.selectionEnd);e.target.selectionStart=e.target.selectionEnd=s+4;cur.code=e.target.value;}
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();runCode();}
+});
+</script>
+</body>
+</html>

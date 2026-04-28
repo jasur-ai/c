@@ -8,6 +8,24 @@ export default async function handler(req, res) {
   const { code, stdin } = req.body || {};
   if (!code) return res.status(400).json({ error: 'code required' });
 
+  // stdin ni kod ichiga inject qilamiz — fmemopen orqali
+  // Bu codapi/wandbox/har qanday API da stdin support bo'lmasa ham ishlaydi
+  const safeStdin = (stdin || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '');
+
+  const injection = `#include <stdio.h>
+#include <string.h>
+static char _fake_buf[] = "${safeStdin}\\n";
+static __attribute__((constructor)) void _stdin_setup(void){
+  stdin = fmemopen(_fake_buf, strlen(_fake_buf), "r");
+}
+`;
+
+  const finalCode = injection + '\n' + code;
+
   try {
     const response = await fetch('https://api.codapi.org/v1/exec', {
       method: 'POST',
@@ -15,8 +33,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         sandbox: 'gcc',
         command: 'run',
-        files: { 'main.c': code },
-        stdin: stdin || '',
+        files: { 'main.c': finalCode },
       }),
     });
 
@@ -27,13 +44,8 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // ok=false => compile yoki runtime xato
     if (!data.ok) {
       const errMsg = (data.stderr || data.stdout || 'Noma\'lum xato').trimEnd();
-      // Compile xatosi yoki runtime xato ajratish
-      if (errMsg.includes('error:') || errMsg.includes('undefined reference')) {
-        return res.status(200).json({ compile_error: errMsg });
-      }
       return res.status(200).json({ compile_error: errMsg });
     }
 
