@@ -8,45 +8,38 @@ export default async function handler(req, res) {
   const { code, stdin } = req.body || {};
   if (!code) return res.status(400).json({ error: 'code required' });
 
-  const CLIENT_ID     = process.env.JDOODLE_CLIENT_ID;
-  const CLIENT_SECRET = process.env.JDOODLE_CLIENT_SECRET;
-
-  if (!CLIENT_ID || !CLIENT_SECRET) {
-    return res.status(500).json({
-      error: 'JDOODLE_CLIENT_ID va JDOODLE_CLIENT_SECRET env variable yo\'q.\nVercel Dashboard → Settings → Environment Variables ga qo\'shing.'
-    });
-  }
-
   try {
-    const response = await fetch('https://api.jdoodle.com/v1/execute', {
+    const response = await fetch('https://api.codapi.org/v1/exec', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        clientId:     CLIENT_ID,
-        clientSecret: CLIENT_SECRET,
-        script:       code,
-        stdin:        stdin || '',
-        language:     'c',
-        versionIndex: '5',   // GCC 11.1
+        sandbox: 'gcc',
+        command: 'run',
+        files: { 'main.c': code },
+        stdin: stdin || '',
       }),
     });
 
-    const data = await response.json();
-
-    // JDoodle: output = stdout+stderr, statusCode = 200 ok
-    if (data.error) {
-      return res.status(200).json({ compile_error: data.error });
+    if (!response.ok) {
+      const txt = await response.text().catch(() => '');
+      return res.status(502).json({ error: `codapi ${response.status}: ${txt.substring(0,300)}` });
     }
 
-    // Kompilatsiya xatosi: output "prog.c" bilan boshlansa
-    const out = (data.output || '').trimEnd();
-    if (out.includes('error:') && out.includes('.c:')) {
-      return res.status(200).json({ compile_error: out });
+    const data = await response.json();
+
+    // ok=false => compile yoki runtime xato
+    if (!data.ok) {
+      const errMsg = (data.stderr || data.stdout || 'Noma\'lum xato').trimEnd();
+      // Compile xatosi yoki runtime xato ajratish
+      if (errMsg.includes('error:') || errMsg.includes('undefined reference')) {
+        return res.status(200).json({ compile_error: errMsg });
+      }
+      return res.status(200).json({ compile_error: errMsg });
     }
 
     return res.status(200).json({
-      stdout: out,
-      stderr: '',
+      stdout: (data.stdout || '').trimEnd(),
+      stderr: (data.stderr || '').substring(0, 300),
     });
 
   } catch (e) {

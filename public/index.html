@@ -489,27 +489,29 @@ async function runCode_api(code, stdin){
     }
   }
 
-  // Lokal fayl (file://) — to'g'ridan Wandbox API
+  // Lokal fayl (file://) — codapi.org
   try {
-    const resp = await fetch('https://wandbox.org/api/compile.json', {
+    const resp = await fetch('https://api.codapi.org/v1/exec', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        compiler: 'gcc-head',
-        code: code,
-        stdin: stdin || '',
-        'compiler-option-raw': '-Wall\n-lm',
-        save: false
+        sandbox: 'gcc',
+        command: 'run',
+        files: { 'main.c': code },
+        stdin: stdin || ''
       })
     });
     const d = await resp.json();
-    if (d.compiler_error) return { compile_error: d.compiler_error };
+    if (!d.ok) {
+      const err = (d.stderr || d.stdout || '').trimEnd();
+      return { compile_error: err };
+    }
     return {
-      stdout: (d.program_output || '').trimEnd(),
-      stderr: (d.program_error || '').substring(0, 300)
+      stdout: (d.stdout || '').trimEnd(),
+      stderr: (d.stderr || '').substring(0, 300)
     };
   } catch(e) {
-    return { error: 'Wandbox API xatosi: ' + e.message };
+    return { error: 'codapi xatosi: ' + e.message };
   }
 }
 
