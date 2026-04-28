@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         compiler: 'gcc-head',
         code: code,
         stdin: stdin || '',
-        'compiler-option-raw': '-Wall -lm',
+        'compiler-option-raw': '-Wall\n-lm',
         'runtime-option-raw': '',
         save: false,
       }),

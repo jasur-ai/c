@@ -498,7 +498,7 @@ async function runCode_api(code, stdin){
         compiler: 'gcc-head',
         code: code,
         stdin: stdin || '',
-        'compiler-option-raw': '-Wall -lm',
+        'compiler-option-raw': '-Wall\n-lm',
         save: false
       })
     });
