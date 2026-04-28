@@ -467,15 +467,49 @@ function showTab(t){
   }
 }
 
-// /api/run — Piston orqali kompilyatsiya (bepul, kalitsiz)
+// Kompilyator: /api/run (Vercel) yoki to'g'ridan Piston (lokal)
 async function runCode_api(code, stdin){
-  const resp = await fetch('/api/run', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ code, stdin })
-  });
-  const data = await resp.json();
-  return data; // {stdout, stderr, compile_error, error}
+  // Har doim /api/run orqali urinib ko'ramiz (Vercel deploy uchun)
+  const isFile = window.location.protocol === 'file:';
+
+  if (!isFile) {
+    // Vercel / server da — /api/run orqali (CORS yo'q)
+    try {
+      const resp = await fetch('/api/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, stdin: stdin || '' })
+      });
+      if (resp.ok) return await resp.json();
+      // /api/run xato bersa, xato xabarini ko'rsat
+      const err = await resp.json().catch(() => ({}));
+      return { error: '/api/run xatosi ' + resp.status + ': ' + (err.error || '') };
+    } catch(e) {
+      return { error: '/api/run ulanmadi: ' + e.message };
+    }
+  }
+
+  // Lokal fayl (file://) — to'g'ridan Piston API
+  try {
+    const resp = await fetch('https://emkc.org/api/v2/piston/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        language: 'c', version: '*',
+        files: [{ name: 'main.c', content: code }],
+        stdin: stdin || ''
+      })
+    });
+    const d = await resp.json();
+    if (d.compile && d.compile.code !== 0 && d.compile.stderr)
+      return { compile_error: d.compile.stderr };
+    return {
+      stdout: (d.run?.stdout || '').trimEnd(),
+      stderr: (d.run?.stderr || '').substring(0, 300)
+    };
+  } catch(e) {
+    return { error: 'Piston API xatosi: ' + e.message };
+  }
 }
 
 async function runCode(){
@@ -499,7 +533,7 @@ async function runCode(){
       if(data.error){ cerr = data.error; break; }
       if(data.compile_error){ cerr = data.compile_error; break; }
 
-      const got = data.stdout || '';
+      const got = (data.stdout || '').trimEnd();
       results.push({id:i+1, inp:t.i, exp:t.e, got, ok: got===t.e, err: data.stderr||''});
     }
 
