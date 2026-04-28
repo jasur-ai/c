@@ -3,11 +3,11 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { code, stdin } = req.body || {};
   if (!code) return res.status(400).json({ error: 'code required' });
 
+  let pistonData = null;
   try {
     const response = await fetch('https://emkc.org/api/v2/piston/execute', {
       method: 'POST',
@@ -20,18 +20,23 @@ module.exports = async function handler(req, res) {
       }),
     });
 
-    const data = await response.json();
+    pistonData = await response.json();
 
-    // Kompilyatsiya xatosi
-    if (data.compile && data.compile.code !== 0) {
-      return res.status(200).json({ compile_error: data.compile.stderr || data.compile.output || 'Compile error' });
+    if (pistonData.compile && pistonData.compile.code !== 0) {
+      return res.status(200).json({
+        compile_error: pistonData.compile.stderr || pistonData.compile.output || 'Compile error'
+      });
     }
 
-    const stdout = (data.run?.stdout || '').trimEnd();
-    const stderr = (data.run?.stderr || '').substring(0, 300);
+    // stdout yoki output fieldini ishlatamiz
+    const stdout = (pistonData.run?.stdout || pistonData.run?.output || '').trimEnd();
+    const stderr = (pistonData.run?.stderr || '').substring(0, 300);
 
-    res.status(200).json({ stdout, stderr });
+    return res.status(200).json({ stdout, stderr, _debug: pistonData });
   } catch (e) {
-    res.status(500).json({ error: 'Server xatosi: ' + e.message });
+    return res.status(500).json({
+      error: e.message,
+      _debug: pistonData
+    });
   }
 };
