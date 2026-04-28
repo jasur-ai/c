@@ -16,11 +16,15 @@ export default async function handler(req, res) {
     .replace(/\n/g, '\\n')
     .replace(/\r/g, '');
 
-  const injection = `#include <stdio.h>
+  const injection = `#include <unistd.h>
 #include <string.h>
 static char _fake_buf[] = "${safeStdin}\\n";
 static __attribute__((constructor)) void _stdin_setup(void){
-  stdin = fmemopen(_fake_buf, strlen(_fake_buf), "r");
+    int fd[2]; pipe(fd);
+    write(fd[1], _fake_buf, strlen(_fake_buf));
+    close(fd[1]);
+    dup2(fd[0], 0);
+    close(fd[0]);
 }
 `;
 
