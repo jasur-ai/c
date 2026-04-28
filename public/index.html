@@ -489,26 +489,27 @@ async function runCode_api(code, stdin){
     }
   }
 
-  // Lokal fayl (file://) — to'g'ridan Piston API
+  // Lokal fayl (file://) — to'g'ridan Wandbox API
   try {
-    const resp = await fetch('https://emkc.org/api/v2/piston/execute', {
+    const resp = await fetch('https://wandbox.org/api/compile.json', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        language: 'c', version: '*',
-        files: [{ name: 'main.c', content: code }],
-        stdin: stdin || ''
+        compiler: 'gcc-head',
+        code: code,
+        stdin: stdin || '',
+        'compiler-option-raw': '-Wall -lm',
+        save: false
       })
     });
     const d = await resp.json();
-    if (d.compile && d.compile.code !== 0 && d.compile.stderr)
-      return { compile_error: d.compile.stderr };
+    if (d.compiler_error) return { compile_error: d.compiler_error };
     return {
-      stdout: (d.run?.stdout || '').trimEnd(),
-      stderr: (d.run?.stderr || '').substring(0, 300)
+      stdout: (d.program_output || '').trimEnd(),
+      stderr: (d.program_error || '').substring(0, 300)
     };
   } catch(e) {
-    return { error: 'Piston API xatosi: ' + e.message };
+    return { error: 'Wandbox API xatosi: ' + e.message };
   }
 }
 
