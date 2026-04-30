@@ -181,7 +181,7 @@ textarea#ce::selection{background:rgba(77,158,255,.2)}
 const P=[
 {id:1,top:"C2",tn:"Bash Utils",d:"easy",title:"Satrni chiqarish (echo)",
 desc:"Stdin dan bir satr o'qib, uni stdout ga chiqaring.\n\nBash'dagi 'echo' buyrug'iga o'xshash.\n\nMaslahat: fgets() bilan o'qing, oxiridagi \\n ni olib tashlang.",
-hint:"fgets(str,1000,stdin); str[strlen(str)-1]='\\0'; printf(\"%s\",str);",
+hint:`fgets(str,1000,stdin); str[strlen(str)-1]='\\0'; printf(\"%s\",str);`,
 code:`#include <stdio.h>
 #include <string.h>
 
@@ -195,7 +195,7 @@ tests:[{i:"Salom dunyo",e:"Salom dunyo"},{i:"C dasturlash",e:"C dasturlash"},{i:
 
 {id:2,top:"C2",tn:"Bash Utils",d:"medium",title:"Satr uzunligi (wc -c)",
 desc:"Stdin dan bir satr o'qib, uzunligini chiqaring.\n\nMisol: \"Salom\" → 5\n\"Hello World\" → 11",
-hint:"strlen() ishlatib uzunlikni toping. fgets() \\n ham o'qiydi, uni hisoblamang.",
+hint:`strlen() ishlatib uzunlikni toping. fgets() \\n ham o'qiydi, uni hisoblamang.`,
 code:`#include <stdio.h>
 #include <string.h>
 
@@ -211,7 +211,7 @@ tests:[{i:"Salom",e:"5"},{i:"Hello World",e:"11"},{i:"C",e:"1"},{i:"abcd",e:"4"}
 
 {id:3,top:"C2",tn:"Bash Utils",d:"hard",title:"So'zlar soni (wc -w)",
 desc:"Stdin dan bir satr o'qib, so'zlar sonini chiqaring.\n\nMisol: \"bu bir test\" → 3",
-hint:"strtok(str,\" \") bilan so'zlarni ajrating va sanang.",
+hint:`strtok(str,\" \") bilan so'zlarni ajrating va sanang.`,
 code:`#include <stdio.h>
 #include <string.h>
 
@@ -226,7 +226,7 @@ tests:[{i:"bu bir test",e:"3"},{i:"salom dunyo",e:"2"},{i:"bir ikki uch tort bes
 
 {id:4,top:"C3",tn:"String Plus",d:"easy",title:"Stringni teskari aylantirish",
 desc:"Stdin dan so'z o'qib, teskari chiqaring.\n\nMisol: \"salom\" → \"molas\"\n\"hello\" → \"olleh\"",
-hint:"for(int i=n-1;i>=0;i--) printf(\"%c\",str[i]);",
+hint:`for(int i=n-1;i>=0;i--) printf(\"%c\",str[i]);`,
 code:`#include <stdio.h>
 #include <string.h>
 
@@ -242,7 +242,7 @@ tests:[{i:"salom",e:"molas"},{i:"hello",e:"olleh"},{i:"C",e:"C"},{i:"abcd",e:"dc
 
 {id:5,top:"C3",tn:"String Plus",d:"medium",title:"Palindrom tekshirish",
 desc:"So'z palindrom bo'lsa \"YES\", bo'lmasa \"NO\" chiqaring.\n\nMisol: \"aba\" → YES\n\"abc\" → NO",
-hint:"Stringni teskari nusxasi bilan solishtiring yoki i va n-1-i indekslarini taqqoslang.",
+hint:`Stringni teskari nusxasi bilan solishtiring yoki i va n-1-i indekslarini taqqoslang.`,
 code:`#include <stdio.h>
 #include <string.h>
 
@@ -258,7 +258,7 @@ tests:[{i:"aba",e:"YES"},{i:"abc",e:"NO"},{i:"racecar",e:"YES"},{i:"hello",e:"NO
 
 {id:6,top:"C3",tn:"String Plus",d:"hard",title:"Bosh harflar soni",
 desc:"Satrda nechta bosh harf (A-Z) borligini chiqaring.\n\nMisol: \"Hello World\" → 2",
-hint:"isupper(c) funksiyasi yoki 'A'<=c && c<='Z' shartini ishlating.",
+hint:`isupper(c) funksiyasi yoki 'A'<=c && c<='Z' shartini ishlating.`,
 code:`#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -274,7 +274,7 @@ tests:[{i:"Hello World",e:"2"},{i:"ABC",e:"3"},{i:"abc",e:"0"},{i:"HeLLo",e:"3"}
 
 {id:7,top:"C5",tn:"Array Ops",d:"easy",title:"Massiv yig'indisi",
 desc:"N ta son o'qib, ularning yig'indisini chiqaring.\n\nMisol:\n3\n1 2 3\n→ 6",
-hint:"sum += a[i] pattern ishlatib yig'ing.",
+hint:`sum += a[i] pattern ishlatib yig'ing.`,
 code:`#include <stdio.h>
 
 int main() {
@@ -289,7 +289,7 @@ tests:[{i:"3\n1 2 3",e:"6"},{i:"5\n10 20 30 40 50",e:"150"},{i:"1\n42",e:"42"}]}
 
 {id:8,top:"C5",tn:"Array Ops",d:"medium",title:"Massivni teskari chiqarish",
 desc:"N ta son o'qib, teskari tartibda chiqaring. Elementlar orasida bo'sh joy bo'lsin.\n\nMisol:\n4\n1 2 3 4\n→ 4 3 2 1",
-hint:"for(int i=n-1;i>=0;i--) formatni ehtiyot bo'lish kerak.",
+hint:`for(int i=n-1;i>=0;i--) formatni ehtiyot bo'lish kerak.`,
 code:`#include <stdio.h>
 
 int main() {
@@ -304,7 +304,7 @@ tests:[{i:"4\n1 2 3 4",e:"4 3 2 1"},{i:"3\n5 10 15",e:"15 10 5"},{i:"1\n7",e:"7"
 
 {id:9,top:"C5",tn:"Array Ops",d:"hard",title:"Eng katta va kichik son",
 desc:"N ta son o'qib, eng katta va eng kichik sonni chiqaring (har biri alohida qatorda).\n\nMisol:\n5\n3 1 4 1 5\n→\n5\n1",
-hint:"max=a[0]; min=a[0]; dan boshlang, keyin for loop bilan yangilang.",
+hint:`max=a[0]; min=a[0]; dan boshlang, keyin for loop bilan yangilang.`,
 code:`#include <stdio.h>
 
 int main() {
@@ -319,7 +319,7 @@ tests:[{i:"5\n3 1 4 1 5",e:"5\n1"},{i:"3\n10 20 5",e:"20\n5"},{i:"1\n42",e:"42\n
 
 {id:10,top:"C6",tn:"Matrix",d:"easy",title:"Matritsa transponenti",
 desc:"N x N matritsa o'qib, transponentini chiqaring.\n\nMisol:\n2\n1 2\n3 4\n→\n1 3\n2 4",
-hint:"t[i][j] = a[j][i] formulasidan foydalaning.",
+hint:`t[i][j] = a[j][i] formulasidan foydalaning.`,
 code:`#include <stdio.h>
 
 int main() {
@@ -334,7 +334,7 @@ tests:[{i:"2\n1 2\n3 4",e:"1 3\n2 4"},{i:"3\n1 2 3\n4 5 6\n7 8 9",e:"1 4 7\n2 5 
 
 {id:11,top:"C6",tn:"Matrix",d:"medium",title:"Diagonal yig'indisi",
 desc:"N x N matritsa o'qib, asosiy diagonal yig'indisini chiqaring.\n\nMisol:\n3\n1 2 3\n4 5 6\n7 8 9\n→ 15",
-hint:"Asosiy diagonal: a[i][i] elementlari (i=0..n-1).",
+hint:`Asosiy diagonal: a[i][i] elementlari (i=0..n-1).`,
 code:`#include <stdio.h>
 
 int main() {
@@ -349,7 +349,7 @@ tests:[{i:"3\n1 2 3\n4 5 6\n7 8 9",e:"15"},{i:"2\n1 2\n3 4",e:"5"},{i:"1\n7",e:"
 
 {id:12,top:"C6",tn:"Matrix",d:"hard",title:"Matritsa ko'paytmasi",
 desc:"N x N ikkita matritsani o'qib, ko'paytmasini chiqaring.\n\nMisol:\n2\n1 2\n3 4\n1 0\n0 1\n→\n1 2\n3 4",
-hint:"c[i][j] = sum(a[i][k]*b[k][j]) uchta ichma-ich for loop kerak.",
+hint:`c[i][j] = sum(a[i][k]*b[k][j]) uchta ichma-ich for loop kerak.`,
 code:`#include <stdio.h>
 
 int main() {
@@ -363,6 +363,328 @@ int main() {
     return 0;
 }`,
 tests:[{i:"2\n1 2\n3 4\n1 0\n0 1",e:"1 2\n3 4"},{i:"2\n1 2\n3 4\n2 0\n1 2",e:"4 4\n10 8"}]},
+
+// ===== C2: BASH UTILS (qo'shimcha) =====
+{id:13,top:"C2",tn:"Bash Utils",d:"easy",title:"Sonni chiqarish",
+desc:"Stdin dan bir son o'qib, uni chiqaring.\n\nMisol: 42 → 42",
+hint:`scanf("%d",&n); printf("%d",n);`,
+code:`#include <stdio.h>
+int main() {
+    int n;
+    // Sonni o'qib chiqaring
+    return 0;
+}`,
+tests:[{i:"42",e:"42"},{i:"0",e:"0"},{i:"-5",e:"-5"},{i:"1000",e:"1000"}]},
+
+{id:14,top:"C2",tn:"Bash Utils",d:"medium",title:"Ikki son yig'indisi",
+desc:"Stdin dan ikkita son o'qib, ularning yig'indisini chiqaring.\n\nMisol: 3 7 → 10",
+hint:`scanf("%d %d",&a,&b); printf("%d",a+b);`,
+code:`#include <stdio.h>
+int main() {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    // Yig'indini chiqaring
+    return 0;
+}`,
+tests:[{i:"3 7",e:"10"},{i:"0 0",e:"0"},{i:"-1 1",e:"0"},{i:"100 200",e:"300"}]},
+
+{id:15,top:"C2",tn:"Bash Utils",d:"medium",title:"Maksimum son",
+desc:"Stdin dan ikkita son o'qib, kattasini chiqaring.\n\nMisol: 5 3 → 5\nMisol: 2 9 → 9",
+hint:`if(a>b) printf("%d",a); else printf("%d",b);`,
+code:`#include <stdio.h>
+int main() {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    // Kattasini chiqaring
+    return 0;
+}`,
+tests:[{i:"5 3",e:"5"},{i:"2 9",e:"9"},{i:"7 7",e:"7"},{i:"-3 -1",e:"-1"}]},
+
+{id:16,top:"C2",tn:"Bash Utils",d:"hard",title:"N ta sonning o'rtachasi",
+desc:"Birinchi qatorda N, keyin N ta son o'qing.\nUlarning o'rtachasini 2 kasr bilan chiqaring.\n\nMisol:\n3\n1 2 3\nChiqish: 2.00",
+hint:`sum/n ni hisoblang. printf("%.2f", (float)sum/n);`,
+code:`#include <stdio.h>
+int main() {
+    int n;
+    scanf("%d", &n);
+    // N ta son o'qing, o'rtachasini %.2f bilan chiqaring
+    return 0;
+}`,
+tests:[{i:"3\n1 2 3",e:"2.00"},{i:"4\n10 20 30 40",e:"25.00"},{i:"1\n5",e:"5.00"},{i:"2\n1 2",e:"1.50"}]},
+
+{id:17,top:"C2",tn:"Bash Utils",d:"hard",title:"Satrni aks ettirish (rev)",
+desc:"N ta satr o'qib, ularni teskari tartibda chiqaring.\n\nMisol:\n3\nbirinchi\nikkinchi\nuchinchi\n\nChiqish:\nuchinchi\nikkinchi\nbirinchi",
+hint:`Satrlarni massivga saqlang, keyin oxiridan boshlab chiqaring.`,
+code:`#include <stdio.h>
+int main() {
+    int n;
+    scanf("%d\n", &n);
+    char lines[100][200];
+    // N satr o'qing
+    for(int i=0;i<n;i++) fgets(lines[i],200,stdin);
+    // Teskari chiqaring
+    return 0;
+}`,
+tests:[{i:"3\nbirinchi\nikkinchi\nuchinchi",e:"uchinchi\nikkinchi\nbirinchi"},{i:"2\na\nb",e:"b\na"},{i:"1\nsalom",e:"salom"}]},
+
+// ===== C3: STRING PLUS (qo'shimcha) =====
+{id:18,top:"C3",tn:"String Plus",d:"easy",title:"Satr takrorlash",
+desc:"Stdin dan so'z va N son o'qib, so'zni N marta chiqaring (har birida yangi qator).\n\nMisol:\nhello 3\nChiqish:\nhello\nhello\nhello",
+hint:`for(int i=0;i<n;i++) printf("%s\n",str);`,
+code:`#include <stdio.h>
+int main() {
+    char str[100];
+    int n;
+    scanf("%s %d", str, &n);
+    // n marta chiqaring
+    return 0;
+}`,
+tests:[{i:"hello 3",e:"hello\nhello\nhello"},{i:"C 1",e:"C"},{i:"ok 2",e:"ok\nok"}]},
+
+{id:19,top:"C3",tn:"String Plus",d:"easy",title:"Birinchi harf katta",
+desc:"Stdin dan so'z o'qib, birinchi harfini KATTA qilib chiqaring.\n\nMisol: hello → Hello\nMisol: world → World",
+hint:`str[0] = toupper(str[0]); printf("%s",str);`,
+code:`#include <stdio.h>
+#include <ctype.h>
+int main() {
+    char str[100];
+    scanf("%s", str);
+    // Birinchi harfni katta qiling
+    return 0;
+}`,
+tests:[{i:"hello",e:"Hello"},{i:"world",e:"World"},{i:"c",e:"C"},{i:"test",e:"Test"}]},
+
+{id:20,top:"C3",tn:"String Plus",d:"medium",title:"Unli harflar soni",
+desc:"Stdin dan so'z o'qib, undagi unli harflar (a,e,i,o,u) sonini chiqaring.\n\nMisol: hello → 2\nMisol: aeiou → 5",
+hint:`for har bir belgini tekshiring: if strchr(\"aeiouAEIOU\",str[i]) count++;`,
+code:`#include <stdio.h>
+#include <string.h>
+int main() {
+    char str[200];
+    scanf("%s", str);
+    int count = 0;
+    // Unli harflarni saning
+    printf("%d", count);
+    return 0;
+}`,
+tests:[{i:"hello",e:"2"},{i:"aeiou",e:"5"},{i:"rhythm",e:"0"},{i:"HELLO",e:"2"}]},
+
+{id:21,top:"C3",tn:"String Plus",d:"medium",title:"So'z o'nglashtirish (trim)",
+desc:"Stdin dan satr o'qib, boshidagi va oxiridagi bo'sh joylarni olib tashlang.\n\nMisol: '  salom  ' → 'salom'",
+hint:`Boshdan birinchi bo'sh joy bo'lmagan pozitsiyani toping, oxiridan ham shunday.`,
+code:`#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+int main() {
+    char str[500];
+    fgets(str, 500, stdin);
+    // Bosh va oxiridagi bo'shliqlarni olib tashlang
+    return 0;
+}`,
+tests:[{i:"  salom  ",e:"salom"},{i:"  hello world  ",e:"hello world"},{i:"test",e:"test"}]},
+
+{id:22,top:"C3",tn:"String Plus",d:"hard",title:"Anagram tekshirish",
+desc:"Ikkita so'z o'qib, ular anagram ekanligini tekshiring.\nAnagram: bir xil harflar, boshqa tartibda.\n\nMisol: listen silent → Ha\nMisol: hello world → Yo'q",
+hint:`Har bir so'z uchun 26 ta harf chastotasini saning, keyin solishtiringaz.`,
+code:`#include <stdio.h>
+#include <string.h>
+int main() {
+    char a[200], b[200];
+    scanf("%s %s", a, b);
+    int ca[26]={}, cb[26]={};
+    // Chastotalarni hisoblang va solishtiring
+    return 0;
+}`,
+tests:[{i:"listen silent",e:"Ha"},{i:"hello world",e:"Yo'q"},{i:"abc cba",e:"Ha"},{i:"rat tar",e:"Ha"}]},
+
+{id:23,top:"C3",tn:"String Plus",d:"hard",title:"So'zlarni teskari tartib",
+desc:"Stdin dan bir satr o'qib, so'zlarni teskari tartibda chiqaring.\n\nMisol: salom dunyo → dunyo salom\nMisol: bir ikki uch → uch ikki bir",
+hint:`So'zlarni massivga saqlang (strtok), keyin oxiridan boshlab chiqaring.`,
+code:`#include <stdio.h>
+#include <string.h>
+int main() {
+    char str[500];
+    fgets(str, 500, stdin);
+    str[strcspn(str,"\n")]=0;
+    char *words[100]; int n=0;
+    // So'zlarni ajrating va teskari chiqaring
+    return 0;
+}`,
+tests:[{i:"salom dunyo",e:"dunyo salom"},{i:"bir ikki uch",e:"uch ikki bir"},{i:"hello",e:"hello"}]},
+
+// ===== C5: DECIMAL (qo'shimcha) =====
+{id:24,top:"C5",tn:"Decimal",d:"easy",title:"Toq/Juft tekshirish",
+desc:"Stdin dan son o'qib, u juft yoki toq ekanligini chiqaring.\n\nMisol: 4 → Juft\nMisol: 7 → Toq",
+hint:`if(n%2==0) printf(\"Juft\"); else printf(\"Toq\");`,
+code:`#include <stdio.h>
+int main() {
+    int n;
+    scanf("%d", &n);
+    // Juft yoki Toq chiqaring
+    return 0;
+}`,
+tests:[{i:"4",e:"Juft"},{i:"7",e:"Toq"},{i:"0",e:"Juft"},{i:"-3",e:"Toq"}]},
+
+{id:25,top:"C5",tn:"Decimal",d:"easy",title:"Raqamlar yig'indisi",
+desc:"Stdin dan musbat butun son o'qib, uning raqamlari yig'indisini chiqaring.\n\nMisol: 123 → 6\nMisol: 456 → 15",
+hint:`while(n>0){ sum += n%10; n/=10; }`,
+code:`#include <stdio.h>
+int main() {
+    int n;
+    scanf("%d", &n);
+    int sum = 0;
+    // Raqamlar yig'indisini hisoblang
+    printf("%d", sum);
+    return 0;
+}`,
+tests:[{i:"123",e:"6"},{i:"456",e:"15"},{i:"0",e:"0"},{i:"999",e:"27"}]},
+
+{id:26,top:"C5",tn:"Decimal",d:"medium",title:"Son teskari (Reverse number)",
+desc:"Stdin dan son o'qib, raqamlarini teskari tartibda chiqaring.\n\nMisol: 12345 → 54321\nMisol: 100 → 1",
+hint:`while(n>0){ rev=rev*10+n%10; n/=10; } printf(\"%d\",rev);`,
+code:`#include <stdio.h>
+int main() {
+    int n;
+    scanf("%d", &n);
+    int rev = 0;
+    // Teskari sonni hisoblang va chiqaring
+    return 0;
+}`,
+tests:[{i:"12345",e:"54321"},{i:"100",e:"1"},{i:"7",e:"7"},{i:"1230",e:"321"}]},
+
+{id:27,top:"C5",tn:"Decimal",d:"medium",title:"Tub son tekshirish",
+desc:"Stdin dan son o'qib, u tub son ekanligini tekshiring.\nTub son: faqat 1 va o'zi ga bo'linadi.\n\nMisol: 7 → Ha\nMisol: 4 → Yo'q",
+hint:`2 dan sqrt(n) gacha bo'lib ko'ring, bo'linsa tub emas.`,
+code:`#include <stdio.h>
+#include <math.h>
+int main() {
+    int n;
+    scanf("%d", &n);
+    if(n < 2) { printf("Yo'q"); return 0; }
+    // Tub son tekshiring
+    return 0;
+}`,
+tests:[{i:"7",e:"Ha"},{i:"4",e:"Yo'q"},{i:"2",e:"Ha"},{i:"1",e:"Yo'q"},{i:"13",e:"Ha"}]},
+
+{id:28,top:"C5",tn:"Decimal",d:"hard",title:"GCD va LCM",
+desc:"Ikkita son o'qib, ularning EKUB (GCD) va EKUK (LCM) ini chiqaring.\n\nMisol: 12 8\nChiqish:\nGCD: 4\nLCM: 24",
+hint:`GCD: Evklid algoritmi gcd(a,b)=gcd(b,a%b). LCM=a*b/gcd(a,b)`,
+code:`#include <stdio.h>
+int gcd(int a, int b) {
+    // Evklid algoritmi
+    return b == 0 ? a : gcd(b, a % b);
+}
+int main() {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    int g = gcd(a, b);
+    printf("GCD: %d\nLCM: %d", g, a/g*b);
+    return 0;
+}`,
+tests:[{i:"12 8",e:"GCD: 4\nLCM: 24"},{i:"7 3",e:"GCD: 1\nLCM: 21"},{i:"6 9",e:"GCD: 3\nLCM: 18"}]},
+
+{id:29,top:"C5",tn:"Decimal",d:"hard",title:"Fibonacci soni",
+desc:"Stdin dan N o'qib, Fibonacci ketma-ketligining N-chi elementini chiqaring.\n\nF(1)=1, F(2)=1, F(n)=F(n-1)+F(n-2)\n\nMisol: 6 → 8",
+hint:`for loop bilan a,b ni almashtiring: temp=a+b; a=b; b=temp;`,
+code:`#include <stdio.h>
+int main() {
+    int n;
+    scanf("%d", &n);
+    long long a=1, b=1;
+    // N-chi Fibonacci sonini toping
+    printf("%lld", a);
+    return 0;
+}`,
+tests:[{i:"1",e:"1"},{i:"6",e:"8"},{i:"10",e:"55"},{i:"2",e:"1"}]},
+
+// ===== C6: MATRIX (qo'shimcha) =====
+{id:30,top:"C6",tn:"Matrix",d:"easy",title:"Bosh diagonal yig'indisi",
+desc:"N o'qing, N×N matritsa o'qing, bosh diagonal yig'indisini chiqaring.\n\nBosh diagonal: a[0][0], a[1][1], ..., a[n-1][n-1]\n\nMisol:\n3\n1 2 3\n4 5 6\n7 8 9\nChiqish: 15",
+hint:`for(i=0;i<n;i++) sum += a[i][i];`,
+code:`#include <stdio.h>
+int main() {
+    int n; scanf("%d",&n);
+    int a[100][100];
+    for(int i=0;i<n;i++) for(int j=0;j<n;j++) scanf("%d",&a[i][j]);
+    int sum=0;
+    // Bosh diagonal yig'indisini hisoblang
+    printf("%d",sum);
+    return 0;
+}`,
+tests:[{i:"3\n1 2 3\n4 5 6\n7 8 9",e:"15"},{i:"2\n1 2\n3 4",e:"5"},{i:"1\n7",e:"7"}]},
+
+{id:31,top:"C6",tn:"Matrix",d:"easy",title:"Ikkinchi diagonal yig'indisi",
+desc:"N×N matritsa ikkinchi diagonal yig'indisini chiqaring.\n\nIkkinchi diagonal: a[0][n-1], a[1][n-2], ...\n\nMisol:\n3\n1 2 3\n4 5 6\n7 8 9\nChiqish: 15",
+hint:`for(i=0;i<n;i++) sum += a[i][n-1-i];`,
+code:`#include <stdio.h>
+int main() {
+    int n; scanf("%d",&n);
+    int a[100][100];
+    for(int i=0;i<n;i++) for(int j=0;j<n;j++) scanf("%d",&a[i][j]);
+    int sum=0;
+    // Ikkinchi diagonal yig'indisini hisoblang
+    printf("%d",sum);
+    return 0;
+}`,
+tests:[{i:"3\n1 2 3\n4 5 6\n7 8 9",e:"15"},{i:"2\n1 2\n3 4",e:"6"},{i:"1\n7",e:"7"}]},
+
+{id:32,top:"C6",tn:"Matrix",d:"medium",title:"Matritsa maksimumi",
+desc:"N×N matritsa o'qib, eng katta elementni chiqaring.\n\nMisol:\n2\n3 1\n4 2\nChiqish: 4",
+hint:`max = a[0][0]; for(i) for(j) if(a[i][j]>max) max=a[i][j];`,
+code:`#include <stdio.h>
+int main() {
+    int n; scanf("%d",&n);
+    int a[100][100];
+    for(int i=0;i<n;i++) for(int j=0;j<n;j++) scanf("%d",&a[i][j]);
+    int mx = a[0][0];
+    // Maksimumni toping va chiqaring
+    return 0;
+}`,
+tests:[{i:"2\n3 1\n4 2",e:"4"},{i:"3\n1 9 2\n3 4 5\n6 7 8",e:"9"},{i:"1\n42",e:"42"}]},
+
+{id:33,top:"C6",tn:"Matrix",d:"medium",title:"Har satr yig'indisi",
+desc:"N×N matritsa o'qib, har bir satr yig'indisini alohida chiqaring.\n\nMisol:\n2\n1 2\n3 4\nChiqish:\n3\n7",
+hint:`for(i) { sum=0; for(j) sum+=a[i][j]; printf(\"%d\\n\",sum); }`,
+code:`#include <stdio.h>
+int main() {
+    int n; scanf("%d",&n);
+    int a[100][100];
+    for(int i=0;i<n;i++) for(int j=0;j<n;j++) scanf("%d",&a[i][j]);
+    // Har satr yig'indisini chiqaring
+    return 0;
+}`,
+tests:[{i:"2\n1 2\n3 4",e:"3\n7"},{i:"3\n1 2 3\n4 5 6\n7 8 9",e:"6\n15\n24"}]},
+
+{id:34,top:"C6",tn:"Matrix",d:"hard",title:"Matritsa 90° burish",
+desc:"N×N matritsa ni soat yo'nalishida 90° ga buring.\n\nFormula: b[j][n-1-i] = a[i][j]\n\nMisol:\n2\n1 2\n3 4\nChiqish:\n3 1\n4 2",
+hint:`b[j][n-1-i] = a[i][j] formulasini ishlating.`,
+code:`#include <stdio.h>
+int main() {
+    int n; scanf("%d",&n);
+    int a[100][100],b[100][100];
+    for(int i=0;i<n;i++) for(int j=0;j<n;j++) scanf("%d",&a[i][j]);
+    // 90 daraja buring
+    // Natijani chiqaring
+    return 0;
+}`,
+tests:[{i:"2\n1 2\n3 4",e:"3 1\n4 2"},{i:"3\n1 2 3\n4 5 6\n7 8 9",e:"7 4 1\n8 5 2\n9 6 3"}]},
+
+{id:35,top:"C6",tn:"Matrix",d:"hard",title:"Ilonsimon chiqarish",
+desc:"N×N matritsa ni ilonsimon (snake pattern) chiqaring.\nToq qatorlar: chapdan o'ng\nJuft qatorlar: o'ngdan chap\n\nMisol:\n2\n1 2\n3 4\nChiqish: 1 2 4 3",
+hint:`if(i%2==0) chapdan o'ngga, else o'ngdan chapga chiqaring.`,
+code:`#include <stdio.h>
+int main() {
+    int n; scanf("%d",&n);
+    int a[100][100];
+    for(int i=0;i<n;i++) for(int j=0;j<n;j++) scanf("%d",&a[i][j]);
+    int first=1;
+    for(int i=0;i<n;i++){
+        // i juft: chapdan o'ng, toq: o'ngdan chap
+        // Elementlar orasida bo'sh joy (oxirida yo'q)
+    }
+    return 0;
+}`,
+tests:[{i:"2\n1 2\n3 4",e:"1 2 4 3"},{i:"3\n1 2 3\n4 5 6\n7 8 9",e:"1 2 3 6 5 4 7 8 9"}]},
 ];
 
 const TC={C2:{a:"#4d9eff",bg:"rgba(77,158,255,.15)"},C3:{a:"#3ddc84",bg:"rgba(61,220,132,.15)"},C5:{a:"#a78bfa",bg:"rgba(167,139,250,.15)"},C6:{a:"#fb923c",bg:"rgba(251,146,60,.15)"}};
@@ -537,7 +859,10 @@ async function runCode(){
       if(data.compile_error){ cerr = data.compile_error; break; }
 
       const got = (data.stdout || '').trimEnd();
-      results.push({id:i+1, inp:t.i, exp:t.e, got, ok: got===t.e, err: data.stderr||''});
+      // Normalize: whitespace tokenlar asosida solishtirish (trailing space, newline farq qilmaydi)
+      const normalize = s => s.trim().split(/\s+/).join(' ');
+      const ok = normalize(got) === normalize(t.e);
+      results.push({id:i+1, inp:t.i, exp:t.e, got, ok, err: data.stderr||''});
     }
 
     if(!cerr && results.length && results.every(r=>r.ok)){
